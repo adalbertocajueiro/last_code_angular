@@ -1,0 +1,19 @@
+<div class="container">
+    <div class="tools">
+        <div class="broker">
+            <label>Connected to broker: </label>
+            <label>{{connectedToBroker}}</label>
+        </div>
+        <div class="select-topics">
+            <label>Select one topic:</label>
+            <select (change)="changeSelectedTopic($event)">
+                <option *ngFor="let topic of allTopics" 
+                    [selected]="topic == selectedTopic">{{topic}}</option>
+            </select>
+        </div>
+        <div class="send">
+            <button>Send message</button>
+        </div>
+        
+    </div>
+</div>

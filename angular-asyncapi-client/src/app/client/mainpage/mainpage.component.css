@@ -1,0 +1,30 @@
+.container{
+    display: flex;
+    width: 98vw;
+    height: 98vh;
+    border: 1px dotted purple;
+
+    .tools{
+        display: flex;
+        align-items: center;
+        height: 30px;
+        flex-direction: row;
+        width: 100%;
+        border: 1px dotted cyan;
+        
+        .broker{
+            margin-right: 20px;
+        }
+        .select-topics{
+            margin-left: 20px;
+
+            select{
+                margin-left: 5px;
+            }
+        }
+
+        .send{
+            margin-left: 40px;
+        }
+    }
+}
