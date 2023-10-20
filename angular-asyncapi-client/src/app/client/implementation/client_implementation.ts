@@ -1,5 +1,4 @@
 import { Injectable } from '@angular/core';
-import { environment } from '../environments/environment';
 import { metainfoService } from '../services/metainfo-mqtt-service';
 import { ROBOT_NAME_commandsService } from '../services/ROBOT_NAME_commands-mqtt-service';
 import { ROBOT_NAME_movedService } from '../services/ROBOT_NAME_moved-mqtt-service';
@@ -7,11 +6,24 @@ import { ROBOT_NAME_movedService } from '../services/ROBOT_NAME_moved-mqtt-servi
 import { MetaInfoObject } from '../models';
 import { CommandObject } from '../models';
 import { MovedObject } from '../models';
+import { METAINFO_TOPIC, ROBOT_NAME_COMMANDS_TOPIC, ROBOT_NAME_MOVED_TOPIC } from '../services/topics';
+import { Subject } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ClientImplementationService {
+
+  metainfoSubject:Subject<any> = new Subject<any>()
+  ROBOT_NAME_commandsSubject: Subject<any> = new Subject<any>()
+  ROBOT_NAME_movedSubject: Subject<any> = new Subject<any>()
+
+  TOPICS_MAPPING: any[][] = [
+    [METAINFO_TOPIC, MetaInfoObject, this.metainfoService],
+    [ROBOT_NAME_COMMANDS_TOPIC, CommandObject,this.ROBOT_NAME_commandsService],
+    [ROBOT_NAME_MOVED_TOPIC, MovedObject, this.ROBOT_NAME_movedService]
+  ];
+
   constructor(
     private metainfoService: metainfoService,
     private ROBOT_NAME_commandsService: ROBOT_NAME_commandsService,
@@ -37,65 +49,61 @@ export class ClientImplementationService {
   }
 
   subscribeToAllServices() {
-    this.metainfoService.subscribemetainfo((message) => {
+    this.metainfoService.subscribe((message) => {
       const subscribeMessage = MetaInfoObject.from_json(
         JSON.parse(message.payload.toString())
       );
+      
       console.log('Handled message: ' + subscribeMessage.toString());
       if (
         subscribeMessage.publisher_id === undefined ||
         subscribeMessage.publisher_id !==
           this.metainfoService.MQTT_SERVICE_OPTIONS.clientId
-      ) {
+      ) { //if message comes from a different publisher
         subscribeMessage.publisher_id =
           this.metainfoService.MQTT_SERVICE_OPTIONS.clientId;
-        this.metainfoService.unsafePublishmetainfo(subscribeMessage);
-      }
-      // TODO: Implement your code here
+        this.metainfoSubject.next(subscribeMessage);
+      } 
     });
 
-    this.ROBOT_NAME_commandsService.subscribeROBOT_NAME_commands((message) => {
+    this.ROBOT_NAME_commandsService.subscribe((message) => {
       const subscribeMessage = CommandObject.from_json(
         JSON.parse(message.payload.toString())
       );
       console.log('Handled message: ' + subscribeMessage.toString());
+      
       if (
         subscribeMessage.publisher_id === undefined ||
         subscribeMessage.publisher_id !==
           this.ROBOT_NAME_commandsService.MQTT_SERVICE_OPTIONS.clientId
-      ) {
+      ) { //if massage comes from a different publisher
         subscribeMessage.publisher_id =
           this.ROBOT_NAME_commandsService.MQTT_SERVICE_OPTIONS.clientId;
-        this.ROBOT_NAME_commandsService.unsafePublishROBOT_NAME_commands(
-          subscribeMessage
-        );
+        this.ROBOT_NAME_commandsSubject.next(subscribeMessage);
       }
-      // TODO: Implement your code here
     });
 
-    this.ROBOT_NAME_movedService.subscribeROBOT_NAME_moved((message) => {
+    this.ROBOT_NAME_movedService.subscribe((message) => {
       const subscribeMessage = MovedObject.from_json(
         JSON.parse(message.payload.toString())
       );
       console.log('Handled message: ' + subscribeMessage.toString());
+      
       if (
         subscribeMessage.publisher_id === undefined ||
         subscribeMessage.publisher_id !==
           this.ROBOT_NAME_movedService.MQTT_SERVICE_OPTIONS.clientId
-      ) {
+      ) { //if message comes from a different publisher
         subscribeMessage.publisher_id =
           this.ROBOT_NAME_movedService.MQTT_SERVICE_OPTIONS.clientId;
-        this.ROBOT_NAME_movedService.unsafePublishROBOT_NAME_moved(
-          subscribeMessage
-        );
-      }
-      // TODO: Implement your code here
+        this.ROBOT_NAME_movedSubject.next(subscribeMessage);
+      } 
     });
   }
 
   unsubscribeToAllServices() {
-    this.metainfoService.unsubscribemetainfo();
-    this.ROBOT_NAME_commandsService.unsubscribeROBOT_NAME_commands();
-    this.ROBOT_NAME_movedService.unsubscribeROBOT_NAME_moved();
+    this.metainfoService.unsubscribe();
+    this.ROBOT_NAME_commandsService.unsubscribe();
+    this.ROBOT_NAME_movedService.unsubscribe();
   }
 }

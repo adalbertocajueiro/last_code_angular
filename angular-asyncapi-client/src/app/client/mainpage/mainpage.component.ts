@@ -1,7 +1,8 @@
-import { AfterViewInit, Component, ElementRef, OnChanges, OnInit, SimpleChanges, ViewChild } from '@angular/core';
-import { ALL_TOPICS } from '../services/topics';
+import { Component, ElementRef, OnChanges, OnInit, SimpleChanges, ViewChild } from '@angular/core';
+
 import { ClientImplementationService } from '../implementation/client_implementation';
-import { MetaInfoObject } from '../models';
+import { ALL_TOPICS } from '../services/topics';
+import { BaseService } from '../services/base-service';
 
 @Component({
   selector: 'app-mainpage',
@@ -9,25 +10,67 @@ import { MetaInfoObject } from '../models';
   styleUrls: ['./mainpage.component.scss']
 })
 
-export class MainpageComponent implements OnInit,OnChanges {
+export class MainpageComponent implements OnInit {
   
   connectedToBroker:boolean = false
   allTopics = ALL_TOPICS
+  topicsMapping?:any[][]
   selectedTopic?:string
   selectedTopicPayload:any
+  selectedService?:BaseService
+
+  receivedTopicPayload: any
 
   @ViewChild("topics") topics?: ElementRef
   
-  constructor(private clientImplementationService: ClientImplementationService){
-    
+  constructor(
+      private clientImplementationService: ClientImplementationService){
+
+      this.topicsMapping = clientImplementationService.TOPICS_MAPPING   
   }
 
-  ngOnChanges(changes: SimpleChanges): void {
-    this.isConnectedToBroker();
-  }
 
   ngOnInit(): void {
-    this.selectedTopic = this.allTopics[0][0]
+    this.selectedTopic = this.allTopics[0]
+    this.clientImplementationService.metainfoSubject.subscribe(
+      {
+        next: (res) => {
+          //console.log('message received',res)
+          this.receivedTopicPayload = res
+        },
+        error: (err) => {
+          //console.log('error',err)
+          this.receivedTopicPayload = undefined
+        }
+      }
+    )
+
+    this.clientImplementationService.ROBOT_NAME_commandsSubject.subscribe(
+      {
+        next: (res) => {
+          //console.log('message received', res)
+          this.receivedTopicPayload = res
+        },
+        error: (err) => {
+          //console.log('error', err)
+          this.receivedTopicPayload = undefined
+        }
+      }
+    )
+
+    this.clientImplementationService.ROBOT_NAME_movedSubject.subscribe(
+      {
+        next: (res) => {
+          //console.log('message received', res)
+          this.receivedTopicPayload = res
+        },
+        error: (err) => {
+          //console.log('error', err)
+          this.receivedTopicPayload = undefined
+        }
+      }
+    )
+
     this.changeSelectedTopic()
     this.isConnectedToBroker()
   }
@@ -38,10 +81,13 @@ export class MainpageComponent implements OnInit,OnChanges {
 
   changeSelectedTopic(){
     const selectedElement =
-      this.allTopics.find((ele: any[]) => ele[0] === this.selectedTopic)
+      this.topicsMapping?.find((ele: any[]) => ele[0] === this.selectedTopic)
     if (selectedElement) {
       var newObj = Reflect.construct(selectedElement[1], [])
       this.selectedTopicPayload = this.buildObject(Object.keys(newObj as any))
+      this.selectedService = selectedElement[2]
+      //this.selectedTopicPayload.publisher_id = this.selectedService?.MQTT_SERVICE_OPTIONS.clientId
+      this.receivedTopicPayload = undefined
     }
   }
 
@@ -51,7 +97,7 @@ export class MainpageComponent implements OnInit,OnChanges {
     return result
   }
 
-  convertClassStructureToJson(classStructure:any){
-    return Object.keys(classStructure)
+  sendMessage(){
+    this.selectedService?.unsafePublish(this.selectedTopicPayload)
   }
 }
