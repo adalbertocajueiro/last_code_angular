@@ -6,14 +6,30 @@
         </div>
         <div class="select-topics">
             <label>Select one topic:</label>
-            <select (change)="changeSelectedTopic($event)">
-                <option *ngFor="let topic of allTopics" 
-                    [selected]="topic == selectedTopic">{{topic}}</option>
+            <select #topics 
+                [(ngModel)]="selectedTopic"
+                (change)="changeSelectedTopic()">
+                <option *ngFor="let topic of allTopics">{{topic[0]}}</option>
             </select>
         </div>
-        <div class="send">
+        
+        
+    </div>
+    <div class="texts">
+        <div class="send-payload">
+            <label>Payload to send:</label>
+            <div class="container-viewer">
+                <pre>{{this.selectedTopicPayload | json}}</pre>
+            </div>
+        </div>
+        <div class="send-button">
             <button>Send message</button>
         </div>
-        
+        <div class="receive-payload">
+            <label>Received payload:</label>
+            <div class="container-viewer">
+            
+            </div>
+        </div>
     </div>
 </div>
