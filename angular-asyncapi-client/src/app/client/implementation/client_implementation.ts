@@ -76,7 +76,7 @@ export class ClientImplementationService {
         subscribeMessage.publisher_id === undefined ||
         subscribeMessage.publisher_id !==
           this.ROBOT_NAME_commandsService.MQTT_SERVICE_OPTIONS.clientId
-      ) { //if massage comes from a different publisher
+      ) { //if message comes from a different publisher
         subscribeMessage.publisher_id =
           this.ROBOT_NAME_commandsService.MQTT_SERVICE_OPTIONS.clientId;
         this.ROBOT_NAME_commandsSubject.next(subscribeMessage);

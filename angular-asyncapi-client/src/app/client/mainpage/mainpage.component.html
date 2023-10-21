@@ -19,7 +19,7 @@
         <div class="send-payload">
             <label>Payload to send:</label>
             <div class="container-viewer">
-                <pre>{{this.selectedTopicPayload | json}}</pre>
+                <pre #sendPayload contenteditable="true">{{this.selectedTopicPayload | json}}</pre>
             </div>
         </div>
         <div class="send-button">

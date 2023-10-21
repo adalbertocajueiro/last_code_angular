@@ -22,6 +22,7 @@ export class MainpageComponent implements OnInit {
   receivedTopicPayload: any
 
   @ViewChild("topics") topics?: ElementRef
+  @ViewChild("sendPayload") sendPayload?:ElementRef
   
   constructor(
       private clientImplementationService: ClientImplementationService){
@@ -86,7 +87,7 @@ export class MainpageComponent implements OnInit {
       var newObj = Reflect.construct(selectedElement[1], [])
       this.selectedTopicPayload = this.buildObject(Object.keys(newObj as any))
       this.selectedService = selectedElement[2]
-      //this.selectedTopicPayload.publisher_id = this.selectedService?.MQTT_SERVICE_OPTIONS.clientId
+      this.selectedTopicPayload.publisher_id = this.selectedService?.MQTT_SERVICE_OPTIONS.clientId
       this.receivedTopicPayload = undefined
     }
   }
@@ -98,6 +99,8 @@ export class MainpageComponent implements OnInit {
   }
 
   sendMessage(){
+    this.selectedTopicPayload = JSON.parse(this.sendPayload?.nativeElement.innerText)
     this.selectedService?.unsafePublish(this.selectedTopicPayload)
+    //this.selectedService?.unsafePublish(this.sendPayload?.nativeElement.innerText)
   }
 }
